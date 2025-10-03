@@ -11,14 +11,14 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request)
     {
         $user = auth()->user();
-        $old = $user->only(['name','email','phone']);
-
+        $old = $user->only(['name', 'email', 'phone', 'avatar']);
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars','public');
+            $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $path;
         }
-
-        $user->fill($request->validated())->save();
+ 
+        //     $user->fill($request->validated())->save();
+        $user->fill($request->except('avatar'))->save();
 
         ActivityLog::create([
             'user_id'    => $user->id,
@@ -26,10 +26,13 @@ class ProfileController extends Controller
             'entity'     => 'user',
             'entity_id'  => $user->id,
             'old_values' => $old,
-            'new_values' => $user->only(['name','email','phone']),
+            'new_values' => $user->only(['name', 'email', 'phone', 'avatar']),
             'message'    => 'Profile updated',
         ]);
 
-        return back()->with('success','Profile updated successfully.');
+        return back()->with('success', 'Profile updated successfully.');
     }
+
+
+
 }

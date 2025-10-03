@@ -35,61 +35,78 @@
             </div>
         </form>
     </x-offcanvas>
+
+
+    {{-- Off-canvas edit --}}
+    <x-offcanvas id="offcanvasEditUser" title="Edit User">
+        <form id="editUserForm" method="POST">
+            @csrf
+            @method('PUT')
+            <div id="editUserFormBody">
+                <!-- AJAX loaded form fields -->
+            </div>
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-primary">Update</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">Close</button>
+            </div>
+        </form>
+    </x-offcanvas>
+
 @endsection
 
 @push('scripts')
     <script>
-        // $('#usersTable').DataTable({
-        //     ajax: '{{ route('users.index') }}',
-        //     columns: [{
-        //             data: 'id',
-        //             name: 'id'
-        //         },
-        //         {
-        //             data: 'full_name',
-        //             name: 'full_name'
-        //         },
-        //         {
-        //             data: 'email',
-        //             name: 'email'
-        //         },
-        //         {
-        //             data: 'role',
-        //             name: 'role'
-        //         },
-        //         {
-        //             data: 'phone',
-        //             name: 'phone'
-        //         },
-        //         {
-        //             data: 'created_at',
-        //             name: 'created_at'
-        //         },
-        //         {
-        //             data: 'action',
-        //             name: 'action',
-        //             orderable: false,
-        //             searchable: false
-        //         }
-        //     ]
-
-        // });
-
 
         $('#usersTable').DataTable({
-    processing: true,
-    serverSide: true,
-    ajax: '{{ route('users.index') }}',
-    columns: [
-        {data: 'id', name: 'id'},
-        {data: 'full_name', name: 'full_name'}, // 👈 fixed
-        {data: 'email', name: 'email'},
-        {data: 'role', name: 'role'},
-        {data: 'phone', name: 'phone'},
-        {data: 'created_at', name: 'created_at'},
-        {data: 'action', name: 'action', orderable: false, searchable: false}
-    ]
-});
+            processing: true,
+            serverSide: true,
+            ajax: '{{ route('users.index') }}',
+            columns: [{
+                    data: 'id',
+                    name: 'id'
+                },
+                {
+                    data: 'full_name',
+                    name: 'full_name'
+                },
+                {
+                    data: 'email',
+                    name: 'email'
+                },
+                {
+                    data: 'role',
+                    name: 'role'
+                },
+                {
+                    data: 'phone',
+                    name: 'phone'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    orderable: false,
+                    searchable: false
+                }
+            ]
+        });
 
+
+        $(document).on("click", ".btn-edit", function() {
+            let userId = $(this).data("id");
+            let url = $(this).data("url");
+
+            $.get(url, function(res) {
+                // assuming users/edit.blade.php returns the form HTML (_form.blade.php)
+                $("#editUserFormBody").html(res.form);
+                $("#editUserForm").attr("action", res.update_url);
+
+                let offcanvas = new bootstrap.Offcanvas(document.getElementById("offcanvasEditUser"));
+                offcanvas.show();
+            });
+        });
     </script>
 @endpush

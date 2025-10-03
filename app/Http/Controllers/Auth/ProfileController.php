@@ -16,7 +16,7 @@ class ProfileController extends Controller
             $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $path;
         }
-
+ 
         //     $user->fill($request->validated())->save();
         $user->fill($request->except('avatar'))->save();
 

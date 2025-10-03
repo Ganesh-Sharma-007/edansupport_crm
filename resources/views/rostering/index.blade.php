@@ -28,24 +28,42 @@
 
 @push('scripts')
 <script>
-window.addEventListener('DOMContentLoaded', () => {
-    const cal = new FullCalendar.Calendar(document.getElementById('calendar'), {
-        initialView : 'dayGridMonth',
-        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
-        editable     : false,
-        events       : '{{ route('rostering.index') }}?ajax=1',
-        eventClick   : info => {
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        editable: false,
+        events: function(fetchInfo, successCallback, failureCallback) {
+            axios.get('{{ route('rostering.index') }}', {
+                params: {
+                    start: fetchInfo.startStr,
+                    end: fetchInfo.endStr,
+                    ajax: 1
+                }
+            })
+            .then(res => successCallback(res.data))
+            .catch(err => failureCallback(err));
+        },
+        eventClick: info => {
             Swal.fire({
                 title: 'Roster Details',
                 html: `<strong>${info.event.title}</strong><br>
                        Start: ${info.event.start.toLocaleString()}<br>
                        End: ${info.event.end.toLocaleString()}<br>
-                       Status: <span class="badge bg-${info.event.color === '#dc3545' ? 'danger' : 'success'}">${info.event.color === '#dc3545' ? 'Cancelled' : 'Assigned'}</span>`,
+                       Status: <span class="badge bg-${info.event.backgroundColor === '#dc3545' ? 'danger' : 'success'}">
+                                ${info.event.backgroundColor === '#dc3545' ? 'Cancelled' : 'Assigned'}</span>`,
                 showCloseButton: true
             });
         }
     });
-    cal.render();
+
+    calendar.render();
 });
 </script>
 @endpush

@@ -26,6 +26,10 @@
         <label class="form-label">Last Name *</label>
         <input type="text" name="last_name" value="{{ old('last_name', $su->last_name ?? '') }}" class="form-control form-control-sm" required>
     </div>
+    <div class="col-md-12">
+        <label class="form-label">Email *</label>
+        <input type="email" name="email" value="{{ old('email', $su->email ?? '') }}" class="form-control form-control-sm" required>
+    </div>
 
     <div class="col-md-6">
         <label class="form-label">Preferred Name</label>

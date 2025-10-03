@@ -11,13 +11,12 @@ class RosteringController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->ajax()) return $this->calendarEvents();
-        return view('rostering.index');
-    }
+        // JSON feed for FullCalendar
+        if ($request->wantsJson() || $request->has('ajax')) {
+            return $this->calendarEvents($request);
+        }
 
-    public function calendar()
-    {
-        return view('rostering.calendar');
+        return view('rostering.index');
     }
 
     public function store(StoreRosterRequest $request)
@@ -32,7 +31,7 @@ class RosteringController extends Controller
             'type'      => 'create',
             'entity'    => 'roster',
             'entity_id' => $roster->id,
-            'message'   => 'Roster shift created: '.$roster->employee->first_name.' → '.$roster->serviceUser->first_name,
+            'message'   => 'Roster shift created: '.$roster->employee?->first_name.' → '.$roster->serviceUser?->first_name,
         ]);
 
         return redirect()->route('rostering.index')->with('success','Shift created.');
@@ -74,20 +73,29 @@ class RosteringController extends Controller
         return redirect()->route('rostering.index')->with('success','Shift cancelled.');
     }
 
-    /* Full-calendar JSON feed */
-    private function calendarEvents()
+    /* FullCalendar JSON feed */
+    private function calendarEvents(Request $request)
     {
+        $start = $request->input('start');
+        $end   = $request->input('end');
+
         $rosters = Roster::with(['employee','serviceUser'])
-                         ->whereBetween('start', [request('start'), request('end')])
-                         ->get(['id','start','end','status','employee_id','service_user_id']);
+            ->where('start', '>=', $start)
+            ->where('end', '<=', $end)
+            ->get(['id','start','end','status','employee_id','service_user_id']);
 
         return response()->json(
             $rosters->map(fn($r) => [
                 'id'    => $r->id,
-                'title' => $r->employee->first_name.' → '.$r->serviceUser->first_name,
-                'start' => $r->start,
-                'end'   => $r->end,
-                'color' => $r->status === 'cancelled' ? '#dc3545' : '#28a745',
+                'title' => ($r->employee?->first_name ?? 'Unknown').' → '.($r->serviceUser?->first_name ?? 'Unknown'),
+                'start' => $r->start->toIsoString(),
+                'end'   => $r->end->toIsoString(),
+                'color' => match($r->status) {
+                    'cancelled' => '#dc3545',
+                    'complete'  => '#0d6efd',
+                    'in-progress'=> '#ffc107',
+                    default     => '#28a745',
+                },
             ])
         );
     }

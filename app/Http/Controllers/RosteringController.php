@@ -37,6 +37,17 @@ class RosteringController extends Controller
         return redirect()->route('rostering.index')->with('success','Shift created.');
     }
 
+public function edit(Roster $roster)
+{
+    $form = view('rostering._form', compact('roster'))->render();
+
+    return response()->json([
+        'form' => $form,
+        'update_url' => route('rostering.update', $roster),
+    ]);
+}
+
+
     public function update(UpdateRosterRequest $request, Roster $roster)
     {
         $old = $roster->only(['start','end','status']);
@@ -85,18 +96,34 @@ class RosteringController extends Controller
             ->get(['id','start','end','status','employee_id','service_user_id']);
 
         return response()->json(
+            // $rosters->map(fn($r) => [
+            //     'id'    => $r->id,
+            //     'title' => ($r->employee?->first_name ?? 'Unknown').' → '.($r->serviceUser?->first_name ?? 'Unknown'),
+            //     'start' => $r->start->toIsoString(),
+            //     'end'   => $r->end->toIsoString(),
+            //     'color' => match($r->status) {
+            //         'cancelled' => '#dc3545',
+            //         'complete'  => '#0d6efd',
+            //         'in-progress'=> '#ffc107',
+            //         default     => '#28a745',
+            //     },
+            // ])
+
             $rosters->map(fn($r) => [
-                'id'    => $r->id,
-                'title' => ($r->employee?->first_name ?? 'Unknown').' → '.($r->serviceUser?->first_name ?? 'Unknown'),
-                'start' => $r->start->toIsoString(),
-                'end'   => $r->end->toIsoString(),
-                'color' => match($r->status) {
-                    'cancelled' => '#dc3545',
-                    'complete'  => '#0d6efd',
-                    'in-progress'=> '#ffc107',
-                    default     => '#28a745',
-                },
-            ])
+    'id' => $r->id,
+    'title' => $r->employee?->first_name.' → '.$r->serviceUser?->first_name,
+    'start' => $r->start->toDateTimeString(),
+    'end' => $r->end->toDateTimeString(),
+    'allDay' => false, // ✅ important
+    'color' => match($r->status) {
+        'cancelled' => '#dc3545',
+        'complete' => '#0d6efd',
+        'in-progress' => '#ffc107',
+        default => '#28a745',
+    },
+])
+
+            
         );
     }
 }

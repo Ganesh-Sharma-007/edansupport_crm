@@ -16,10 +16,12 @@ use App\Http\Controllers\{
     RosteringController,
     TimesheetController,
     InvoiceController,
-    SettingController
+    SettingController,
+    HolidayController
 };
 
 /* ---------- Authentication ---------- */
+
 Route::middleware('guest')->group(function () {
     Route::get('login',  [LoginController::class, 'show'])->name('login');
     Route::post('login', [LoginController::class, 'store']);
@@ -56,9 +58,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/calendar', 'calendar')->name('calendar');
         Route::post('/store', 'store')->name('store');
+        Route::get('/{roster}/edit', 'edit')->name('edit');
         Route::put('/{roster}', 'update')->name('update');
         Route::delete('/{roster}', 'destroy')->name('destroy');
     });
+
 
     /* Timesheets */
     Route::get('timesheets', [TimesheetController::class, 'index'])->name('timesheets.index');
@@ -75,6 +79,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:super-admin')->prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('index');
         Route::put('permissions/{user}', [SettingController::class, 'updatePermissions'])->name('permissions.update');
-        Route::resource('holidays', \App\Http\Controllers\HolidayController::class)->except(['show']);
+        Route::resource('holidays', HolidayController::class)->except(['show']);
     });
 });

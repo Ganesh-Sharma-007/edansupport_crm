@@ -31,26 +31,26 @@ class RosteringController extends Controller
             'type'      => 'create',
             'entity'    => 'roster',
             'entity_id' => $roster->id,
-            'message'   => 'Roster shift created: '.$roster->employee?->first_name.' → '.$roster->serviceUser?->first_name,
+            'message'   => 'Roster shift created: ' . $roster->employee?->first_name . ' → ' . $roster->serviceUser?->first_name,
         ]);
 
-        return redirect()->route('rostering.index')->with('success','Shift created.');
+        return redirect()->route('rostering.index')->with('success', 'Shift created.');
     }
 
-public function edit(Roster $roster)
-{
-    $form = view('rostering._form', compact('roster'))->render();
+    public function edit(Roster $roster)
+    {
+        $form = view('rostering._form', compact('roster'))->render();
 
-    return response()->json([
-        'form' => $form,
-        'update_url' => route('rostering.update', $roster),
-    ]);
-}
+        return response()->json([
+            'form' => $form,
+            'update_url' => route('rostering.update', $roster),
+        ]);
+    }
 
 
     public function update(UpdateRosterRequest $request, Roster $roster)
     {
-        $old = $roster->only(['start','end','status']);
+        $old = $roster->only(['start', 'end', 'status']);
         $roster->fill($request->validated())->save();
 
         ActivityLog::create([
@@ -59,11 +59,11 @@ public function edit(Roster $roster)
             'entity'     => 'roster',
             'entity_id'  => $roster->id,
             'old_values' => $old,
-            'new_values' => $roster->only(['start','end','status']),
+            'new_values' => $roster->only(['start', 'end', 'status']),
             'message'    => 'Roster shift updated',
         ]);
 
-        return redirect()->route('rostering.index')->with('success','Shift updated.');
+        return redirect()->route('rostering.index')->with('success', 'Shift updated.');
     }
 
     public function destroy(Roster $roster)
@@ -81,7 +81,7 @@ public function edit(Roster $roster)
             'message'   => 'Roster shift cancelled',
         ]);
 
-        return redirect()->route('rostering.index')->with('success','Shift cancelled.');
+        return redirect()->route('rostering.index')->with('success', 'Shift cancelled.');
     }
 
     /* FullCalendar JSON feed */
@@ -90,10 +90,10 @@ public function edit(Roster $roster)
         $start = $request->input('start');
         $end   = $request->input('end');
 
-        $rosters = Roster::with(['employee','serviceUser'])
+        $rosters = Roster::with(['employee', 'serviceUser'])
             ->where('start', '>=', $start)
             ->where('end', '<=', $end)
-            ->get(['id','start','end','status','employee_id','service_user_id']);
+            ->get(['id', 'start', 'end', 'status', 'employee_id', 'service_user_id']);
 
         return response()->json(
             // $rosters->map(fn($r) => [
@@ -110,20 +110,23 @@ public function edit(Roster $roster)
             // ])
 
             $rosters->map(fn($r) => [
-    'id' => $r->id,
-    'title' => $r->employee?->first_name.' → '.$r->serviceUser?->first_name,
-    'start' => $r->start->toDateTimeString(),
-    'end' => $r->end->toDateTimeString(),
-    'allDay' => false, // ✅ important
-    'color' => match($r->status) {
-        'cancelled' => '#dc3545',
-        'complete' => '#0d6efd',
-        'in-progress' => '#ffc107',
-        default => '#28a745',
-    },
-])
+                'id' => $r->id,
+                'title' => $r->employee?->first_name . ' → ' . $r->serviceUser?->first_name,
+                'start' => $r->start->toDateTimeString(),
+                'end' => $r->end->toDateTimeString(),
+                'allDay' => false, // ✅ important
+                'extendedProps'   => [
+                    'status' => $r->status, // ✅ now available for JS
+                ],
+                'color' => match ($r->status) {
+                    'cancelled' => '#dc3545',
+                    'complete' => '#0d6efd',
+                    'in-progress' => '#ffc107',
+                    default => '#28a745',
+                },
+            ])
 
-            
+
         );
     }
 }

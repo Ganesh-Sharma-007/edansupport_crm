@@ -44,46 +44,7 @@
 
 
 
-@push('scripts')
-{{-- <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,listWeek'
-        },
-        editable: false,
-        events: function(fetchInfo, successCallback, failureCallback) {
-            axios.get('{{ route('rostering.index') }}', {
-                params: {
-                    start: fetchInfo.startStr,
-                    end: fetchInfo.endStr,
-                    ajax: 1
-                }
-            })
-            .then(res => successCallback(res.data))
-            .catch(err => failureCallback(err));
-        },
-        eventClick: info => {
-            Swal.fire({
-                title: 'Roster Details',
-                html: `<strong>${info.event.title}</strong><br>
-                       Start: ${info.event.start.toLocaleString()}<br>
-                       End: ${info.event.end.toLocaleString()}<br>
-                       Status: <span class="badge bg-${info.event.backgroundColor === '#dc3545' ? 'danger' : 'success'}">
-                                ${info.event.backgroundColor === '#dc3545' ? 'Cancelled' : 'Assigned'}</span>`,
-                showCloseButton: true
-            });
-        }
-    });
-
-    calendar.render();
-});
-</script> --}}
+@push('scripts') 
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -120,40 +81,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 container: 'body'
             });
         },
-        // eventClick: function(info) {
-        //     const e = info.event;
-        //     const colorClass =
-        //         e.backgroundColor === '#dc3545' ? 'danger' :
-        //         e.backgroundColor === '#0d6efd' ? 'primary' :
-        //         e.backgroundColor === '#ffc107' ? 'warning' : 'success';
-
-        //     Swal.fire({
-        //         title: 'Roster Details',
-        //         html: `
-        //             <strong>Task:</strong> ${e.title}<br>
-        //             <strong>Status:</strong> <span class="badge bg-${colorClass}">
-        //                 ${e.extendedProps.status || 'assigned'}
-        //             </span><br>
-        //             <strong>Start:</strong> ${e.startStr}<br>
-        //             <strong>End:</strong> ${e.endStr}<br><br>
-        //             <div class="text-center mt-3">
-        //                 <button type="button" id="editRosterBtn" class="btn btn-sm btn-outline-primary">
-        //                     <i class="fa fa-edit me-1"></i> Edit
-        //                 </button>
-        //             </div>
-        //         `,
-        //         showCloseButton: true,
-        //         showConfirmButton: false,
-        //         didOpen: () => {
-        //             document.getElementById('editRosterBtn').addEventListener('click', () => {
-        //                 // window.location.href = `/rostering/${e.id}/edit`;
-        //         let offcanvas = new bootstrap.Offcanvas(document.getElementById("offcanvasEditRoster"));
-        //         offcanvas.show();
-        //             });
-        //         }
-
-        //     });
-        // },
         eventClick: function(info) {
     const e = info.event;
     const colorClass =
@@ -180,6 +107,8 @@ document.addEventListener('DOMContentLoaded', function () {
         showConfirmButton: false,
         didOpen: () => {
             $('#editRosterBtn').off('click').on('click', function() {
+                // ✅ Close the SweetAlert popup first
+                Swal.close();
                 $.get(`/rostering/${e.id}/edit`, function(res) {
                     // Inject form HTML
                     $('#editRosterFormBody').html(res.form);

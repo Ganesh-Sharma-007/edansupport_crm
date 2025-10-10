@@ -7,13 +7,21 @@
                 </a>
             </li>
 
-            @canSeeUsers()
+            {{-- @canSeeUsers()
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
                     <i class="bi bi-people"></i> Users
                 </a>
             </li>
-            @endcanSeeUsers
+            @endcanSeeUsers --}}
+            @can('view-users')
+<li class="nav-item">
+    <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+        <i class="bi bi-people"></i> Users
+    </a>
+</li>
+@endcan
+
 
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}" href="{{ route('employees.index') }}">

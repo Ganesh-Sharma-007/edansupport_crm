@@ -15,7 +15,7 @@ class StoreRosterRequest extends FormRequest
     {
         return [
             'start'              => 'required|date',
-            'end'                => 'required|date|after:start',
+'end' => 'required|date|after_or_equal:start',
             'shift_hours'        => 'nullable|numeric|min:0',
             'status'             => 'required|in:assigned,cancelled,complete,in-progress',
             'service_user_id'    => 'required|exists:service_users,id',

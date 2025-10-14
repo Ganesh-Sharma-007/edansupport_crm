@@ -1,5 +1,15 @@
 @extends('layouts.app')
-
+@push('styles')
+    <style>
+        .fc-event.bg-holiday {
+            background-color: #69bf3e !important;
+            color: #fff !important;
+            align-content: center;
+            text-align: center;
+            opacity: 1 !important;
+        }
+    </style>
+@endpush
 @section('title','Dashboard')
  
 @section('content')
@@ -95,112 +105,76 @@
     </form>
 </x-offcanvas>
 
+@endsection
+ 
 
 
 
-@push('scripts')
-<script>
-window.rosters = @json($rosters);
-</script>
-@endpush
+{{-- @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const calendarEl = document.getElementById('calendar');
 
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                themeSystem: 'bootstrap5',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                events: "{{ route('rostering.index', ['ajax' => true]) }}",
 
+                eventDidMount: info => new bootstrap.Tooltip(info.el, {
+                    title: info.event.extendedProps.tooltip,
+                    container: 'body'
+                }),
 
-@push('scripts') 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const calendarEl = document.getElementById('calendar');
-
-    if (!calendarEl) {
-        console.error("Calendar container not found.");
-        return;
-    }
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView : 'dayGridMonth',
-        headerToolbar: {
-            left  : 'prev,next today',
-            center: 'title',
-            right : 'dayGridMonth,timeGridWeek,listWeek'
-        },
-        themeSystem: 'bootstrap5',
-        selectable: true,
-        editable: false,
-        events: {
-            url: "{{ route('rostering.index') }}",
-            method: 'GET',
-            extraParams: { ajax: true },
-            failure: function() {
-                Swal.fire('Error', 'Failed to load roster data.', 'error');
-            }
-        },
-        eventDidMount: function(info) {
-            new bootstrap.Tooltip(info.el, {
-                title: info.event.title,
-                placement: 'top',
-                trigger: 'hover',
-                container: 'body'
+                eventClick: info => showRosterDetails(info.event)
             });
-        }, 
-        eventClick: function(info) {
-    const e = info.event;
-    const colorClass =
-        e.backgroundColor === '#dc3545' ? 'danger' :
-        e.backgroundColor === '#0d6efd' ? 'primary' :
-        e.backgroundColor === '#ffc107' ? 'warning' : 'success';
 
-    Swal.fire({
-        title: 'Roster Details',
-        html: `
-            <strong>Task:</strong> ${e.title}<br>
-            <strong>Status:</strong> <span class="badge bg-${colorClass}">
-                ${e.extendedProps.status || 'assigned'}
+            calendar.render();
+
+            function showRosterDetails(event) {
+                Swal.fire({
+                    title: 'Roster Details',
+                    html: `
+            <strong>Task:</strong> ${event.title}<br>
+            <strong>Status:</strong> <span class="badge bg-${event.extendedProps.badge}">
+                ${event.extendedProps.status}
             </span><br>
-            <strong>Start:</strong> ${e.startStr}<br>
-            <strong>End:</strong> ${e.endStr}<br><br>
+            <strong>Start:</strong> ${event.startStr}<br>
+            <strong>End:</strong> ${event.endStr}<br><br>
             <div class="text-center mt-3">
-                <button type="button" id="editRosterBtn" class="btn btn-sm btn-outline-primary">
+                <button id="editRosterBtn" class="btn btn-sm btn-outline-primary">
                     <i class="fa fa-edit me-1"></i> Edit
                 </button>
             </div>
         `,
-        showCloseButton: true,
-        showConfirmButton: false,
-        didOpen: () => {
-            $('#editRosterBtn').off('click').on('click', function() {
-                // ✅ Close the SweetAlert popup first
-                Swal.close();
-                $.get(`/rostering/${e.id}/edit`, function(res) {
-                    // Inject form HTML
-                    $('#editRosterFormBody').html(res.form);
-
-                    // Update form action
-                    $('#editRosterForm').attr('action', res.update_url);
-
-                    // Show offcanvas
-                    const offcanvas = new bootstrap.Offcanvas(document.getElementById('offcanvasEditRoster'));
-                    offcanvas.show();
-                }).fail(function() {
-                    Swal.fire('Error', 'Failed to load edit form.', 'error');
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        const btn = document.getElementById('editRosterBtn');
+                        if (btn) {
+                            btn.addEventListener('click', () => openEditRoster(event.id));
+                        }
+                    }
                 });
-            });
-        }
-    });
-},
-
-        dateClick: function(info) {
-            Swal.fire({
-                title: 'Add Shift',
-                text: 'You clicked on ' + info.dateStr,
-                icon: 'info'
-            });
-        }
-    });
-
-    calendar.render();
-});
-</script>
-@endpush
+            }
 
 
-@endsection
+            function openEditRoster(id) {
+                Swal.close();
+                fetch(`/rostering/${id}/edit`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('editRosterFormBody').innerHTML = data.form;
+                        document.getElementById('editRosterForm').action = data.update_url;
+                        new bootstrap.Offcanvas(document.getElementById('offcanvasEditRoster')).show();
+                    })
+                    .catch(() => Swal.fire('Error', 'Failed to load edit form.', 'error'));
+            }
+        });
+    </script>
+@endpush --}}
+

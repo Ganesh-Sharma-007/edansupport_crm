@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Roster, Employee, ServiceUser};
+use Carbon\Carbon;
+use App\Models\{Roster, Employee, Holiday, ServiceUser};
 use App\Http\Requests\{StoreRosterRequest, UpdateRosterRequest};
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
@@ -21,9 +22,24 @@ class RosteringController extends Controller
 
     public function store(StoreRosterRequest $request)
     {
+
+
+        $startDate = Carbon::parse($request->start)->toDateString();
+
+        // ✅ Check if the start date is a holiday
+        $holiday = Holiday::whereDate('date', $startDate)->first();
+
+        if ($holiday) {
+            return redirect()->back()->withErrors([
+                'start' => "Cannot assign roster on holiday: {$holiday->name} ({$holiday->date->format('d-m-Y')})"
+            ])->withInput();
+        }
+
+
         $roster = Roster::create([
             ...$request->validated(),
             'assigned_by' => auth()->id(),
+            'cancelled_by' => auth()->id(),
         ]);
 
         ActivityLog::create([
@@ -39,6 +55,7 @@ class RosteringController extends Controller
 
     public function edit(Roster $roster)
     {
+
         $form = view('rostering._form', compact('roster'))->render();
 
         return response()->json([
@@ -50,6 +67,7 @@ class RosteringController extends Controller
 
     public function update(UpdateRosterRequest $request, Roster $roster)
     {
+
         $old = $roster->only(['start', 'end', 'status']);
         $roster->fill($request->validated())->save();
 
@@ -66,67 +84,168 @@ class RosteringController extends Controller
         return redirect()->route('rostering.index')->with('success', 'Shift updated.');
     }
 
+    // public function destroy(Roster $roster)
+    // {
+    //     $roster->update([
+    //         'status'       => 'cancelled',
+    //         'cancelled_by' => auth()->id(),
+    //     ]);
+
+    //     ActivityLog::create([
+    //         'user_id'   => auth()->id(),
+    //         'type'      => 'delete',
+    //         'entity'    => 'roster',
+    //         'entity_id' => $roster->id,
+    //         'message'   => 'Roster shift cancelled',
+    //     ]);
+
+    //     return redirect()->route('rostering.index')->with('success', 'Shift cancelled.');
+    // }
     public function destroy(Roster $roster)
-    {
-        $roster->update([
-            'status'       => 'cancelled',
-            'cancelled_by' => auth()->id(),
-        ]);
+{
+    ActivityLog::create([
+        'user_id'   => auth()->id(),
+        'type'      => 'delete',
+        'entity'    => 'roster',
+        'entity_id' => $roster->id,
+        'message'   => 'Roster permanently deleted',
+    ]);
 
-        ActivityLog::create([
-            'user_id'   => auth()->id(),
-            'type'      => 'delete',
-            'entity'    => 'roster',
-            'entity_id' => $roster->id,
-            'message'   => 'Roster shift cancelled',
-        ]);
+    $roster->delete();
 
-        return redirect()->route('rostering.index')->with('success', 'Shift cancelled.');
-    }
+    return response()->json(['message' => 'Roster deleted successfully.']);
+}
+
 
     /* FullCalendar JSON feed */
+    // private function calendarEvents(Request $request)
+    // {
+    //     $start = $request->input('start');
+    //     $end   = $request->input('end');
+
+    //     $rosters = Roster::with(['employee', 'serviceUser'])
+    //         ->where('start', '>=', $start)
+    //         ->where('end', '<=', $end)
+    //         ->get(['id', 'start', 'end', 'status', 'employee_id', 'service_user_id']);
+
+    //     return response()->json(
+    //         // $rosters->map(fn($r) => [
+    //         //     'id'    => $r->id,
+    //         //     'title' => ($r->employee?->first_name ?? 'Unknown').' → '.($r->serviceUser?->first_name ?? 'Unknown'),
+    //         //     'start' => $r->start->toIsoString(),
+    //         //     'end'   => $r->end->toIsoString(),
+    //         //     'color' => match($r->status) {
+    //         //         'cancelled' => '#dc3545',
+    //         //         'complete'  => '#0d6efd',
+    //         //         'in-progress'=> '#ffc107',
+    //         //         default     => '#28a745',
+    //         //     },
+    //         // ])
+
+    //         $rosters->map(fn($r) => [
+    //             'id' => $r->id,
+    //             'title' => $r->employee?->first_name . ' → ' . $r->serviceUser?->first_name,
+    //             'start' => $r->start->toDateTimeString(),
+    //             'end' => $r->end->toDateTimeString(),
+    //             'allDay' => false, // ✅ important
+    //             'extendedProps'   => [
+    //                 'status' => $r->status, // ✅ now available for JS
+    //             ],
+    //             'color' => match ($r->status) {
+    //                 'cancelled' => '#dc3545',
+    //                 'complete' => '#0d6efd',
+    //                 'in-progress' => '#ffc107',
+    //                 default => '#28a745',
+    //             },
+    //         ])
+
+
+    //     );
+    // }
+
     private function calendarEvents(Request $request)
     {
-        $start = $request->input('start');
-        $end   = $request->input('end');
+        $start = $request->start;
+        $end   = $request->end;
 
+        // Fetch rosters with employee & service user
         $rosters = Roster::with(['employee', 'serviceUser'])
-            ->where('start', '>=', $start)
-            ->where('end', '<=', $end)
-            ->get(['id', 'start', 'end', 'status', 'employee_id', 'service_user_id']);
+            ->whereBetween('start', [$start, $end])
+            ->get();
 
-        return response()->json(
-            // $rosters->map(fn($r) => [
-            //     'id'    => $r->id,
-            //     'title' => ($r->employee?->first_name ?? 'Unknown').' → '.($r->serviceUser?->first_name ?? 'Unknown'),
-            //     'start' => $r->start->toIsoString(),
-            //     'end'   => $r->end->toIsoString(),
-            //     'color' => match($r->status) {
-            //         'cancelled' => '#dc3545',
-            //         'complete'  => '#0d6efd',
-            //         'in-progress'=> '#ffc107',
-            //         default     => '#28a745',
-            //     },
-            // ])
+        // Fetch holidays within range
+        $holidays = Holiday::whereBetween('date', [$start, $end])->get();
 
-            $rosters->map(fn($r) => [
-                'id' => $r->id,
-                'title' => $r->employee?->first_name . ' → ' . $r->serviceUser?->first_name,
-                'start' => $r->start->toDateTimeString(),
-                'end' => $r->end->toDateTimeString(),
-                'allDay' => false, // ✅ important
-                'extendedProps'   => [
-                    'status' => $r->status, // ✅ now available for JS
-                ],
-                'color' => match ($r->status) {
-                    'cancelled' => '#dc3545',
-                    'complete' => '#0d6efd',
-                    'in-progress' => '#ffc107',
-                    default => '#28a745',
+        // Format roster events
+        // $rosterEvents = $rosters->map(fn($r) => [
+        //     'id'    => $r->id,
+        //     'title' => "{$r->employee?->first_name} → {$r->serviceUser?->first_name}",
+        //     'start' => $r->start->toDateTimeString(),
+        //     'end'   => $r->end->toDateTimeString(),
+        //     'allDay' => false,
+        //     'color' => match ($r->status) {
+        //         'cancelled'   => '#dc3545',   // red
+        //         'complete'    => '#28a745',   // green
+        //         'in-progress' => '#ffc107',   // yellow
+        //         default       => '#0d6efd',   // blue
+        //     },
+        //     'extendedProps' => [
+        //         'type'    => 'roster',
+        //         'status'  => $r->status,
+        //         'tooltip' => "Employee: {$r->employee?->first_name}\nUser: {$r->serviceUser?->first_name}",
+        //         'badge'   => match ($r->status) {
+        //             'cancelled'   => 'danger',
+        //             'complete'    => 'primary',
+        //             'in-progress' => 'warning',
+        //             default       => 'success',
+        //         },
+        //     ],
+        // ]);
+        
+        $rosterEvents = $rosters->map(fn($r) => [
+            'id'    => $r->id,
+            'title' => "{$r->employee?->first_name} → {$r->serviceUser?->first_name}",
+            'start' => $r->start->toDateTimeString(),
+            'end'   => $r->end->toDateTimeString(),
+            'allDay' => false,
+            'display' => 'block', // or 'background' for full-cell highlight
+            'backgroundColor' => match ($r->status) {
+                'cancelled'   => '#dc3545',   // red
+                'complete'    => '#28a745',   // green
+                'in-progress' => '#ffc107',   // yellow
+                default       => '#0d6efd',   // blue
+            },
+            'borderColor' => 'transparent', // remove default border
+            'textColor' => '#fff', // make text readable
+            'extendedProps' => [
+                'type'    => 'roster',
+                'status'  => $r->status,
+                'tooltip' => "Employee: {$r->employee?->first_name}\nUser: {$r->serviceUser?->first_name}",
+                'badge'   => match ($r->status) {
+                    'cancelled'   => 'danger',
+                    'complete'    => 'success',
+                    'in-progress' => 'warning',
+                    default       => 'primary',
                 },
-            ])
+            ],
+        ]);
+
+        // Format holiday events
+        $holidayEvents = $holidays->map(fn($h) => [
+            'id'    => 'holiday-' . $h->id,
+            'classNames' => ['bg-holiday'], // ✅ Add custom class
+            'title' => "{$h->name}",
+            'start' => $h->date->toDateString(),
+            'display' => 'background', // 👈 Fills entire cell
+            'allDay' => true,
+            'extendedProps' => [
+                'type'    => 'holiday',
+                'tooltip' => "Public Holiday: {$h->name}",
+            ],
+        ]);
 
 
-        );
+        // Merge and return both sets
+        return response()->json($rosterEvents->merge($holidayEvents));
     }
 }

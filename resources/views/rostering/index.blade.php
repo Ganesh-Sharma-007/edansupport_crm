@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 
-@push('styles')
+{{-- @push('styles')
     <style>
         .fc-event.bg-holiday {
             background-color: #69bf3e !important;
@@ -10,8 +10,51 @@
             text-align: center;
             opacity: 1 !important;
         }
+ 
+        .fc .fc-daygrid-day-number, .fc .fc-col-header-cell-cushion  { 
+            text-decoration: none;
+            color: #000;
+        }
+
+        .fc-theme-standard td, .fc-theme-standard th {
+            height: 120px;
+        }
     </style>
+@endpush --}}
+
+@push('styles')
+<style>
+.fc-theme-standard td, .fc-theme-standard th {
+    height: 140px !important;
+    vertical-align: top;
+}
+.fc-daygrid-day-events {
+    max-height: 85px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.fc-daygrid-day-events::-webkit-scrollbar {
+    width: 6px;
+}
+.fc-daygrid-day-events::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+.fc-event {
+    font-size: 0.75rem;
+    margin: 2px 0;
+    border-radius: 3px;
+    padding: 2px 4px;
+}
+.fc-event.bg-holiday {
+    background-color: #69bf3e !important;
+    color: #fff !important;
+    text-align: center;
+    opacity: 1 !important;
+}
+</style>
 @endpush
+
 
 @section('title', 'Rostering')
 

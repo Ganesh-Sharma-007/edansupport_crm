@@ -15,7 +15,8 @@ class StoreEmployeeRequest extends FormRequest
     {
         return [
             'username'               => 'required|string|max:50|unique:employees,username',
-            'password'               => 'required|string|min:6',
+            // 'password'               => 'required|string|min:6',
+            'password'               => 'nullable|string|min:6|confirmed', // 👈 now optional
             'email'                  => 'required|email|unique:employees,email',
             'title'                  => 'nullable|string|max:20',
             'first_name'             => 'required|string|max:100',

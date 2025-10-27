@@ -1,5 +1,5 @@
 <div class="table-responsive">
-    <table class="table table-sm align-middle">
+    <table id="timesheet-table" class="table table-sm w-100 align-middle table-bordered text-center">
         <thead class="table-light">
             <tr>
                 <th>Week Start</th>
@@ -14,18 +14,31 @@
             </tr>
         </thead>
         <tbody>
-            {{-- Dummy row until dynamic data --}}
-            <tr>
-                <td>{{ now()->startOfWeek()->format('d M Y') }}</td>
-                <td>37.5</td>
-                <td>7.5</td>
-                <td>7.5</td>
-                <td>7.5</td>
-                <td>7.5</td>
-                <td>7.5</td>
-                <td>0</td>
-                <td>0</td>
-            </tr>
+
         </tbody>
     </table>
 </div>
+
+
+@push('scripts')
+<script>
+$(function() {
+    $('#timesheet-table').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route('employees.timesheet', $employee->id) }}',
+        columns: [
+            { data: 'week_start', name: 'week_start' },
+            { data: 'total', name: 'total' },
+            { data: 'Mon', name: 'Mon' },
+            { data: 'Tue', name: 'Tue' },
+            { data: 'Wed', name: 'Wed' },
+            { data: 'Thu', name: 'Thu' },
+            { data: 'Fri', name: 'Fri' },
+            { data: 'Sat', name: 'Sat' },
+            { data: 'Sun', name: 'Sun' },
+        ]
+    });
+});
+</script>
+@endpush

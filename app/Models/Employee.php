@@ -65,4 +65,11 @@ class Employee extends Model
         'disability'              => 'boolean',
         'is_active'               => 'boolean',
     ];
+
+    
+public function rosters()
+{
+    return $this->hasMany(Roster::class, 'employee_id');
+}
+
 }

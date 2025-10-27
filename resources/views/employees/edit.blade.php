@@ -65,4 +65,7 @@ window.empId = {{ $employee->id }};
 </script>
 <script src="{{ asset('assets/js/employee-tabs.js') }}"></script>
 @endpush
+
+
+
 @endsection

@@ -24,6 +24,9 @@
 <!-- Bootstrap 5 CSS (CDN) -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+<!-- ✅ Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
 <!-- Custom app CSS (optional, keep if you have your own styles) -->
 <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
 

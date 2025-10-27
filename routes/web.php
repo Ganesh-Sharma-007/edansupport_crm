@@ -46,6 +46,12 @@ Route::middleware(['auth'])->group(function () {
 
     /* Employees */
     Route::resource('employees', EmployeeController::class)->except(['show']);
+    Route::get('/employees/{employee}/timesheet', [EmployeeController::class, 'timesheet'])
+    ->name('employees.timesheet');
+Route::get('/employees/{employee}/rosters', [EmployeeController::class, 'calendarEvents'])
+    ->name('employees.rosters');
+
+
 
     /* Service Users */
     Route::resource('service-users', ServiceUserController::class)->except(['show']);

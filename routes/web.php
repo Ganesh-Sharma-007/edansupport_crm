@@ -11,6 +11,7 @@ use App\Http\Controllers\{
     DashboardController,
     UserController,
     EmployeeController,
+    EmployeeDocumentController,
     ServiceUserController,
     FunderController,
     RosteringController,
@@ -51,8 +52,11 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/employees/{employee}/rosters', [EmployeeController::class, 'getRosters'])
     ->name('employees.rosters.data');
 
-
-
+Route::prefix('employees/{employee}')->group(function () {
+    Route::get('documents', [EmployeeDocumentController::class, 'index'])->name('employees.documents.index');
+    Route::post('documents', [EmployeeDocumentController::class, 'store'])->name('employees.documents.store');
+    Route::delete('documents/{document}', [EmployeeDocumentController::class, 'destroy'])->name('employees.documents.destroy');
+});
 
     /* Service Users */
     Route::resource('service-users', ServiceUserController::class)->except(['show']);

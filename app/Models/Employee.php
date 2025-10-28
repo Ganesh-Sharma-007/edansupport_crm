@@ -67,6 +67,13 @@ class Employee extends Model
     ];
 
     
+
+    public function documents()
+{
+    return $this->hasMany(EmployeeDocument::class);
+}
+
+    
 public function rosters()
 {
     return $this->hasMany(Roster::class, 'employee_id');

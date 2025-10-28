@@ -2,6 +2,15 @@
 
 @section('title','Edit Employee')
 
+<style>
+#empCalendar {
+    min-height: 600px;
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 10px;
+}
+</style>
+
 @section('content')
 <div class="d-flex justify-content-between mb-3">
     <h5>Edit Employee: {{ $employee->first_name }} {{ $employee->last_name }}</h5>

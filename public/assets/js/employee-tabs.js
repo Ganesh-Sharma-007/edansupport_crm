@@ -27,3 +27,49 @@ document.addEventListener('DOMContentLoaded', () => {
         bootstrap.Modal.getInstance(document.getElementById('modalAddDoc')).hide();
     });
 });
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('empCalendar');
+
+    if (!calendarEl || typeof window.empId === 'undefined') {
+        console.warn('Calendar container or empId missing');
+        return;
+    }
+
+    let calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        themeSystem: 'bootstrap5',
+        height: 650,
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        events: `/employees/${window.empId}/rosters`,
+        eventDidMount: function (info) {
+            new bootstrap.Tooltip(info.el, {
+                title: `${info.event.title} (${info.event.extendedProps.status})`,
+                placement: 'top',
+                trigger: 'hover'
+            });
+        },
+    });
+
+    // Lazy render on tab activation
+    const tab = document.querySelector('#rosters-tab');
+    if (tab) {
+        tab.addEventListener('shown.bs.tab', () => {
+            calendar.render();
+        });
+    }
+});

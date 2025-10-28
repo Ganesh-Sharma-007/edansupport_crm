@@ -178,4 +178,34 @@ public function timesheet(Employee $employee)
 
 
 
+
+public function getRosters(Employee $employee)
+{
+    $rosters = $employee->rosters()
+        ->with('serviceUser')
+        ->get()
+        ->map(function ($roster) {
+            return [
+                'id'        => $roster->id,
+                'title'     => optional($roster->serviceUser)->first_name 
+                                ? $roster->serviceUser->first_name . ' ' . $roster->serviceUser->last_name 
+                                : 'Shift',
+'start' => $roster->start->toDateTimeString(),
+'end' => $roster->end->toDateTimeString(),
+                'status'    => $roster->status,
+            'display' => 'block', // or 'background' for full-cell highlight
+            'backgroundColor' => match ($roster->status) {
+                'cancelled'   => '#dc3545',   // red
+                'complete'    => '#28a745',   // green
+                'in-progress' => '#ffc107',   // yellow
+                default       => '#0d6efd',   // blue   => '#6c757d',
+                },
+            ];
+        });
+
+    return response()->json($rosters);
+}
+
+
+
 }

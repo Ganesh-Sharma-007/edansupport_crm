@@ -48,8 +48,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('employees', EmployeeController::class)->except(['show']);
     Route::get('/employees/{employee}/timesheet', [EmployeeController::class, 'timesheet'])
     ->name('employees.timesheet');
-Route::get('/employees/{employee}/rosters', [EmployeeController::class, 'calendarEvents'])
-    ->name('employees.rosters');
+Route::get('/employees/{employee}/rosters', [EmployeeController::class, 'getRosters'])
+    ->name('employees.rosters.data');
+
 
 
 

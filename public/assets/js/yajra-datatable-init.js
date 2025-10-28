@@ -7,7 +7,7 @@ $.extend(true, $.fn.dataTable.defaults, {
     lengthMenu: [10, 25, 50, 100],
     language: {
         search: "Quick search:",
-        lengthMenu: "Show _MENU_ rows",
+        lengthMenu: "Rows _MENU_",
         info: "Showing _START_ to _END_ of _TOTAL_ entries",
         paginate: { previous: "&laquo;", next: "&raquo;" }
     },

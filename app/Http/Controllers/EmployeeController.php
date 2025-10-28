@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CalendarHelper;
 use App\Models\Employee;
 use App\Http\Requests\{StoreEmployeeRequest, UpdateEmployeeRequest};
 use App\Models\ActivityLog;
@@ -135,77 +136,116 @@ public function edit(Employee $employee)
 
 
     
-public function timesheet(Employee $employee)
+    public function timesheet(Employee $employee)
+    {
+        $employee->load('rosters');
+
+        // Group rosters by week (Monday–Sunday)
+        $timesheetData = $employee->rosters
+            ->groupBy(function ($roster) {
+                return Carbon::parse($roster->start)->startOfWeek()->format('Y-m-d');
+            })
+            ->map(function (Collection $weekGroup, $weekStart) {
+                $days = [
+                    'Mon' => 0, 'Tue' => 0, 'Wed' => 0,
+                    'Thu' => 0, 'Fri' => 0, 'Sat' => 0, 'Sun' => 0,
+                ];
+
+                foreach ($weekGroup as $roster) {
+                    $dayName = Carbon::parse($roster->start)->format('D');
+                    $days[$dayName] += $roster->shift_hours;
+                }
+
+                return [
+                    'week_start' => Carbon::parse($weekStart)->format('d M Y'),
+                    'total' => array_sum($days),
+                    'Mon' => $days['Mon'],
+                    'Tue' => $days['Tue'],
+                    'Wed' => $days['Wed'],
+                    'Thu' => $days['Thu'],
+                    'Fri' => $days['Fri'],
+                    'Sat' => $days['Sat'],
+                    'Sun' => $days['Sun'],
+                ];
+            })
+            ->values();
+
+        return datatables()->of($timesheetData)->make(true);
+    }
+
+
+
+
+
+// public function getRosters(Employee $employee, Request $request)
+// {
+//     $start = $request->query('start');
+//     $end   = $request->query('end');
+
+//     // Fetch employee rosters with related service user
+//     $rosters = $employee->rosters()
+//         ->with('serviceUser')
+//         ->whereBetween('start', [$start, $end])
+//         ->get();
+
+//     // Fetch holidays within the same date range
+//     $holidays = Holiday::whereBetween('date', [$start, $end])->get();
+
+//     // Format roster events
+//     $rosterEvents = $rosters->map(function ($roster) {
+//         return [
+//             'id'        => $roster->id,
+//             'title'     => optional($roster->serviceUser)->first_name 
+//                             ? $roster->serviceUser->first_name . ' ' . $roster->serviceUser->last_name 
+//                             : 'Shift',
+//             'start'     => $roster->start->toDateTimeString(),
+//             'end'       => $roster->end->toDateTimeString(),
+//             'status'    => $roster->status,
+//             'display'   => 'block', // visible as event box
+//             'backgroundColor' => match ($roster->status) {
+//                 'cancelled'   => '#dc3545',   // red
+//                 'complete'    => '#28a745',   // green
+//                 'in-progress' => '#ffc107',   // yellow
+//                 default       => '#0d6efd',   // blue
+//             },
+//             'borderColor' => 'transparent',
+//             'textColor'   => '#fff',
+//             'extendedProps' => [
+//                 'type'    => 'roster',
+//                 'status'  => $roster->status,
+//                 'tooltip' => 'Service User: ' . ($roster->serviceUser->first_name ?? 'N/A'),
+//             ],
+//         ];
+//     });
+
+//     // Format holiday events
+//     $holidayEvents = $holidays->map(function ($holiday) {
+//         return [
+//             'id'    => 'holiday-' . $holiday->id,
+//             'title' => $holiday->name,
+//             'start' => $holiday->date->toDateString(),
+//             'display' => 'background', // fills entire cell
+//             'allDay' => true,
+//             'classNames' => ['bg-holiday'], // custom CSS class
+//             // 'backgroundColor' => 'rgba(255, 0, 0, 0.15)', // soft red background
+//             'borderColor' => 'transparent',
+//             'extendedProps' => [
+//                 'type'    => 'holiday',
+//                 'tooltip' => "Public Holiday: {$holiday->name}",
+//             ],
+//         ];
+//     });
+
+//     // Merge both sets
+//     $events = $rosterEvents->merge($holidayEvents);
+
+//     return response()->json($events);
+// }
+
+public function getRosters(Employee $employee, Request $request)
 {
-    $employee->load('rosters');
-
-    // Group rosters by week (Monday–Sunday)
-    $timesheetData = $employee->rosters
-        ->groupBy(function ($roster) {
-            return Carbon::parse($roster->start)->startOfWeek()->format('Y-m-d');
-        })
-        ->map(function (Collection $weekGroup, $weekStart) {
-            $days = [
-                'Mon' => 0, 'Tue' => 0, 'Wed' => 0,
-                'Thu' => 0, 'Fri' => 0, 'Sat' => 0, 'Sun' => 0,
-            ];
-
-            foreach ($weekGroup as $roster) {
-                $dayName = Carbon::parse($roster->start)->format('D');
-                $days[$dayName] += $roster->shift_hours;
-            }
-
-            return [
-                'week_start' => Carbon::parse($weekStart)->format('d M Y'),
-                'total' => array_sum($days),
-                'Mon' => $days['Mon'],
-                'Tue' => $days['Tue'],
-                'Wed' => $days['Wed'],
-                'Thu' => $days['Thu'],
-                'Fri' => $days['Fri'],
-                'Sat' => $days['Sat'],
-                'Sun' => $days['Sun'],
-            ];
-        })
-        ->values();
-
-    return datatables()->of($timesheetData)->make(true);
+    $events = CalendarHelper::getEvents($request, $employee);
+    return response()->json($events);
 }
-
-
-
-
-
-
-
-
-public function getRosters(Employee $employee)
-{
-    $rosters = $employee->rosters()
-        ->with('serviceUser')
-        ->get()
-        ->map(function ($roster) {
-            return [
-                'id'        => $roster->id,
-                'title'     => optional($roster->serviceUser)->first_name 
-                                ? $roster->serviceUser->first_name . ' ' . $roster->serviceUser->last_name 
-                                : 'Shift',
-'start' => $roster->start->toDateTimeString(),
-'end' => $roster->end->toDateTimeString(),
-                'status'    => $roster->status,
-            'display' => 'block', // or 'background' for full-cell highlight
-            'backgroundColor' => match ($roster->status) {
-                'cancelled'   => '#dc3545',   // red
-                'complete'    => '#28a745',   // green
-                'in-progress' => '#ffc107',   // yellow
-                default       => '#0d6efd',   // blue   => '#6c757d',
-                },
-            ];
-        });
-
-    return response()->json($rosters);
-}
-
-
 
 }

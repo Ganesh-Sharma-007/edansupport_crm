@@ -64,6 +64,7 @@
 
 <x-modal id="modalAddDoc" title="Add Document">
     <form id="formAddDoc" enctype="multipart/form-data">
+        @csrf
         <input type="hidden" id="employee_id" value="{{ $employee->id }}">
         <div class="mb-3">
             <label class="form-label">Document Type</label>

@@ -40,6 +40,13 @@ class ServiceUserController extends Controller
         return view('service-users.edit', compact('serviceUser'));
     }
 
+    
+//     public function edit(ServiceUser $serviceUser)
+//     {
+// return view('service_users.edit', ['su' => $serviceUser]);
+//     }
+
+
     public function update(UpdateServiceUserRequest $request, ServiceUser $serviceUser)
     {
         $old = $serviceUser->only(['first_name','last_name']);
@@ -77,7 +84,9 @@ class ServiceUserController extends Controller
     private function datatable()
     {
         return datatables()->eloquent(
-            ServiceUser::query()->select(['id','first_name','last_name','email','address','city','contact_number','is_active'])
+ServiceUser::query()->select([
+    'id','first_name','last_name','email','address','city','postcode','contact_number','is_active'
+])
         )
         ->addColumn('name', fn($su) => $su->first_name.' '.$su->last_name)
         ->addColumn('status', fn($su) => $su->is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>')

@@ -42,4 +42,10 @@ class ServiceUser extends Model
         'date_of_birth' => 'date',
         'is_active' => 'boolean',
     ];
+
+        /* relationships */
+    public function invoice()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

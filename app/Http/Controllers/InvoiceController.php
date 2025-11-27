@@ -26,7 +26,8 @@ class InvoiceController extends Controller
             'funder_id'       => $data['funder_id'] ?? null,
             'issue_date'      => $data['start_date'],
             'due_date'        => $data['end_date'],
-            'total_amount'    => $this->calculateTotal($data),
+            // 'total_amount'    => $this->calculateTotal($data),
+            'total_amount'    => $data['total_amount'],
             'generated_by'    => auth()->id(),
             'status'          => 'draft',
         ]);
@@ -83,9 +84,9 @@ class InvoiceController extends Controller
         ->toJson();
     }
 
-    private function calculateTotal(array $data): float
-    {
-        // dummy calc – replace with real logic
-        return 250.00;
-    }
+    // private function calculateTotal(array $data): float
+    // {
+    //     // dummy calc – replace with real logic
+    //     return 250.00;
+    // }
 }

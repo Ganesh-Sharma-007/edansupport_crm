@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ServiceUser;
 use App\Http\Requests\{StoreServiceUserRequest, UpdateServiceUserRequest};
 use App\Models\ActivityLog;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 
 class ServiceUserController extends Controller
@@ -35,22 +36,44 @@ class ServiceUserController extends Controller
         return redirect()->route('service-users.index')->with('success','Service user created.');
     }
 
-    public function edit(ServiceUser $serviceUser)
-    {
-        return view('service-users.edit', compact('serviceUser'));
-    }
+    // public function edit(ServiceUser $serviceUser)
+    // {
+    //     return view('service-users.edit', compact('serviceUser'));
+        
+    // }
 
     
-//     public function edit(ServiceUser $serviceUser)
-//     {
-// return view('service_users.edit', ['su' => $serviceUser]);
-//     }
+public function edit(ServiceUser $serviceUser)
+{
+    $invoice = $serviceUser->invoice()->latest()->first(); // <-- GET OLD VALUES
+
+    return view('service-users.edit', compact('serviceUser', 'invoice'));
+}
+
 
 
     public function update(UpdateServiceUserRequest $request, ServiceUser $serviceUser)
+    // public function update(Request $request, ServiceUser $serviceUser)
     {
+
         $old = $serviceUser->only(['first_name','last_name']);
+                        // dd($request, $serviceUser->invoice);
+
         $serviceUser->fill($request->validated())->save();
+        // $serviceUser->fill($request->all())->save();
+    // Create invoice from request
+    Invoice::create([
+        'invoice_no'      => 'INV-' . time(),
+        'service_user_id' => $serviceUser->id,
+        'funder_id'       => $request->funder_id,
+        'issue_date'      => now(),
+        'due_date'        => now()->addDays(14),
+        'status'          => 'draft',
+        'total_amount'    => $request->care_price, // or calculation
+        'generated_by'    => auth()->id(),
+    ]);
+
+
 
         ActivityLog::create([
             'user_id'    => auth()->id(),

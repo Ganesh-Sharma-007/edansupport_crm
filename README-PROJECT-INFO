@@ -1,0 +1,7 @@
+Admin – The Admin oversees and manages the entire CRM system. They have full control over all operations and act as the primary owner of the platform.
+
+Employee – Employees work under the Admin’s organization. The Admin assigns specific Service Users to Employees so they can manage and support those individuals effectively.
+
+Service User – Service Users are the individuals who require the company’s services. The Admin assigns an Employee to each Service User to ensure they receive proper assistance.
+
+Funders – Funders are the entities that provide financial support—such as donors, government tenders, grants, or charitable organizations. Their contributions enable the company to deliver services to the Service Users who need them.

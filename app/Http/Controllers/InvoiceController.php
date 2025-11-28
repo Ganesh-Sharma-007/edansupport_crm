@@ -16,34 +16,74 @@ class InvoiceController extends Controller
         return view('invoices.index');
     }
 
+    // public function generate(StoreInvoiceRequest $request)
+    // {
+    //     $data = $request->validated();
+
+    //     $invoice = Invoice::create([
+    //         'invoice_no'      => 'INV-'.time(),
+    //         'service_user_id' => $data['customer'],
+    //         'funder_id'       => $data['funder_id'] ?? null,
+    //         'issue_date'      => $data['start_date'],
+    //         'due_date'        => $data['end_date'],
+    //         // 'total_amount'    => $this->calculateTotal($data),
+    //         'total_amount'    => $data['total_amount'],
+    //         'generated_by'    => auth()->id(),
+    //         'status'          => 'draft',
+    //     ]);
+
+    //     ActivityLog::create([
+    //         'user_id'   => auth()->id(),
+    //         'type'      => 'create',
+    //         'entity'    => 'invoice',
+    //         'entity_id' => $invoice->id,
+    //         'message'   => 'Invoice generated: '.$invoice->invoice_no,
+    //     ]);
+
+    //     // PDF stream
+    //     $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+    //     return $pdf->download($invoice->invoice_no.'.pdf');
+    // }
+
     public function generate(StoreInvoiceRequest $request)
-    {
-        $data = $request->validated();
+{
+    $data = $request->validated();
 
-        $invoice = Invoice::create([
-            'invoice_no'      => 'INV-'.time(),
-            'service_user_id' => $data['customer'],
-            'funder_id'       => $data['funder_id'] ?? null,
-            'issue_date'      => $data['start_date'],
-            'due_date'        => $data['end_date'],
-            // 'total_amount'    => $this->calculateTotal($data),
-            'total_amount'    => $data['total_amount'],
-            'generated_by'    => auth()->id(),
-            'status'          => 'draft',
-        ]);
+    $serviceUser = ServiceUser::find($data['customer']);
 
-        ActivityLog::create([
-            'user_id'   => auth()->id(),
-            'type'      => 'create',
-            'entity'    => 'invoice',
-            'entity_id' => $invoice->id,
-            'message'   => 'Invoice generated: '.$invoice->invoice_no,
-        ]);
+    $careHours = $serviceUser->care_hours;
+    $visitDuration = $serviceUser->visit_duration;
+    $carePrice = $serviceUser->care_price;
 
-        // PDF stream
-        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
-        return $pdf->download($invoice->invoice_no.'.pdf');
-    }
+    $totalAmount = $careHours * $visitDuration * $carePrice;
+
+    // Optional: prorate based on date range
+    $days = \Carbon\Carbon::parse($data['start_date'])->diffInDays($data['end_date']) + 1;
+    $dailyRate = $totalAmount / 7; // assuming weekly rate
+    $totalAmount = round($dailyRate * $days, 2);
+
+    $invoice = Invoice::create([
+        'invoice_no'      => 'INV-' . time(),
+        'service_user_id' => $serviceUser->id,
+        'funder_id'       => $serviceUser->funder_id,
+        'issue_date'      => $data['start_date'],
+        'due_date'        => $data['end_date'],
+        'total_amount'    => $totalAmount,
+        'generated_by'    => auth()->id(),
+        'status'          => 'draft',
+    ]);
+
+    ActivityLog::create([
+        'user_id'   => auth()->id(),
+        'type'      => 'create',
+        'entity'    => 'invoice',
+        'entity_id' => $invoice->id,
+        'message'   => 'Invoice generated: ' . $invoice->invoice_no,
+    ]);
+
+    $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+    return $pdf->download($invoice->invoice_no . '.pdf');
+}
 
     public function show(Invoice $invoice)
     {

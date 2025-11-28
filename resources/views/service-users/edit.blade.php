@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('title','Edit Service User')
+<style>
+    #suCalendar {
+        min-height: 500px;
+    }
+</style>
 
 @section('content')
 <div class="d-flex justify-content-between mb-3">

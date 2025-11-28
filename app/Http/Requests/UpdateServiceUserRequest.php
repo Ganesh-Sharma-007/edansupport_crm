@@ -40,6 +40,13 @@ class UpdateServiceUserRequest extends FormRequest
         'contact_number'         => 'nullable|string|max:25',
         'fax'                    => 'nullable|string|max:25',
         'other'                  => 'nullable|string|max:255',
+        'funder_type'            => 'nullable|in:private,public',
+        'funder_id'              => 'nullable|exists:funders,id',
+        'care_price'             => 'nullable|numeric|min:0',
+        'travel_time'            => 'nullable|integer|min:0',
+        'is_active'              => 'sometimes|boolean',
+
+
     ];
         
     }

@@ -15,6 +15,7 @@ class ServiceUser extends Model
         'first_name',
         'middle_initial',
         'last_name',
+        'email',
         'preferred_name',
         'city',
         'country',
@@ -35,6 +36,10 @@ class ServiceUser extends Model
         'fax',
         'other',
         'is_active',
+        'funder_type',
+        'funder_id',
+        'care_price',
+        'travel_time',
     ];
 
     protected $casts = [
@@ -47,5 +52,9 @@ class ServiceUser extends Model
     public function invoice()
     {
         return $this->hasMany(Invoice::class);
+    }
+    public function roster()
+    {
+        return $this->hasMany(Roster::class);
     }
 }

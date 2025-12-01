@@ -70,6 +70,25 @@
 <script>
 window.suId = {{ $serviceUser->id }};
 </script>
+@php
+    $events = $service_user_roster->map(function($r) {
+        return [
+            'id'       => $r->id,
+            'title'    => 'Shift (' . $r->shift_hours . ' hrs)',
+            'start'    => $r->start,
+            'end'      => $r->end,
+            'status'   => $r->status,
+            'tooltip'  => 'Status: ' . $r->status,
+            'notes'    => $r->notes ?? '',
+        ];
+    });
+@endphp
+
+<script>
+    window.suRosterEvents = @json($events);
+</script>
+
+
 <script src="{{ asset('assets/js/service-user-tabs.js') }}"></script>
 @endpush
 @endsection

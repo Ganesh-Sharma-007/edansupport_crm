@@ -43,9 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,listWeek'
         },
-
-        // Load appointments
-        events: `/api/service-users/${window.suId}/appointments`,
+    events: window.suRosterEvents, // <-- ADD THIS LINE
 
         dayMaxEvents: 3,
 

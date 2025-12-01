@@ -48,6 +48,7 @@ public function edit(ServiceUser $serviceUser)
     // Get all rosters for this service user
     $service_user_roster = $serviceUser->roster()->get();
 
+    // dd($service_user_roster);
     // Last invoice
     $invoice = $serviceUser->invoice()->latest()->first();
 

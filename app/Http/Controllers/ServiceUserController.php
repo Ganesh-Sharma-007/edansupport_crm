@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ServiceUser;
 use App\Http\Requests\{StoreServiceUserRequest, UpdateServiceUserRequest};
 use App\Models\ActivityLog;
+use App\Models\Holiday;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 
@@ -43,19 +44,32 @@ class ServiceUserController extends Controller
     // }
 
 
-public function edit(ServiceUser $serviceUser)
+public function edit(Request $request, ServiceUser $serviceUser)
 {
-    // Get all rosters for this service user
+    // Rosters
     $service_user_roster = $serviceUser->roster()->get();
 
-    // dd($service_user_roster);
-    // Last invoice
+    // Date range (from query or fallback to service user dates)
+    $start = $request->query('start', $serviceUser->start);
+    $end   = $request->query('end', $serviceUser->end);
+        // dd($start, $end);
+
+    // Holidays in range
+    $service_user_holiday = Holiday::whereBetween('date', [$start, $end])->get();
+
+    // Invoice
     $invoice = $serviceUser->invoice()->latest()->first();
 
-    return view('service-users.edit', compact('serviceUser', 'invoice', 'service_user_roster'));
+    return view(
+        'service-users.edit',
+        compact(
+            'serviceUser',
+            'invoice',
+            'service_user_roster',
+            'service_user_holiday'
+        )
+    );
 }
-
-
 
     // public function update(UpdateServiceUserRequest $request, ServiceUser $serviceUser)
     // // public function update(Request $request, ServiceUser $serviceUser)

@@ -100,6 +100,8 @@
             </div>
         </form>
     </x-offcanvas>
+
+    
 @endsection
 
 

@@ -45,19 +45,30 @@ class EmployeeDocumentController extends Controller
         return response()->json($documents);
     }
 
-public function destroy( EmployeeDocument $document)
+    // public function destroy( EmployeeDocument $document)
+    // {
+    //     // delete file from storage
+    //     if ($document->file_path) {
+    //         Storage::disk('public')->delete($document->file_path);
+    //     }
+
+    //     // delete document record
+    //     $document->delete();
+
+    //     return response()->json(['message' => 'Document deleted successfully']);
+    // }
+    public function destroy(Employee $employee, EmployeeDocument $document)
 {
-    // dd($document);
-    // delete file from storage
-    if ($document->file_path) {
+    // delete file
+    if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
         Storage::disk('public')->delete($document->file_path);
     }
 
-    // delete document record
     $document->delete();
 
     return response()->json(['message' => 'Document deleted successfully']);
 }
+
 
 
 }

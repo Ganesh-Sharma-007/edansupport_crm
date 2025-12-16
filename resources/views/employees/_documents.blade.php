@@ -87,70 +87,70 @@
 
 {{-- @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const employeeId = document.getElementById('employee_id').value;
-    const docForm = document.getElementById('formAddDoc');
+    document.addEventListener('DOMContentLoaded', () => {
+        const employeeId = document.getElementById('employee_id').value;
+        const docForm = document.getElementById('formAddDoc');
 
-    const loadDocuments = () => {
-        fetch(`/employees/${employeeId}/documents`)
-            .then(res => res.json())
-            .then(data => {
-                ['care-plan', 'incident', 'daily-records'].forEach(type => {
-                    const pane = document.getElementById(type);
-                    const docs = data[type] || [];
-                    pane.innerHTML = docs.length
-                        ? docs.map(d => `
-                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                                <a href="/storage/${d.file_path}" target="_blank">${d.file_name}</a>
-                                <button class="btn btn-sm btn-danger" onclick="deleteDoc(${d.id})">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        `).join('')
-                        : '<div class="text-muted small">No documents yet.</div>';
+        const loadDocuments = () => {
+            fetch(`/employees/${employeeId}/documents`)
+                .then(res => res.json())
+                .then(data => {
+                    ['care-plan', 'incident', 'daily-records'].forEach(type => {
+                        const pane = document.getElementById(type);
+                        const docs = data[type] || [];
+                        pane.innerHTML = docs.length
+                            ? docs.map(d => `
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <a href="/storage/${d.file_path}" target="_blank">${d.file_name}</a>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteDoc(${d.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            `).join('')
+                            : '<div class="text-muted small">No documents yet.</div>';
+                    });
                 });
-            });
+        };
+
+    window.deleteDoc = (id) => {
+        console.log("document id=======> ", id)
+        console.log("employee id=======> ", employeeId)
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This document will be permanently deleted!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/employees/${employeeId}/documents/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                .then(res => res.json())
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'Document has been deleted successfully.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    loadDocuments();
+                })
+                .catch(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Something went wrong while deleting the document.',
+                    });
+                });
+            }
+        });
     };
-
-window.deleteDoc = (id) => {
-    console.log("document id=======> ", id)
-    console.log("employee id=======> ", employeeId)
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This document will be permanently deleted!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/employees/${employeeId}/documents/${id}`, {
-                method: 'DELETE',
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-            })
-            .then(res => res.json())
-            .then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Deleted!',
-                    text: 'Document has been deleted successfully.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                loadDocuments();
-            })
-            .catch(() => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: 'Something went wrong while deleting the document.',
-                });
-            });
-        }
-    });
-};
 
 
     docForm.addEventListener('submit', e => {

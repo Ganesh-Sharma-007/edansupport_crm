@@ -53,13 +53,32 @@ class EmployeeController extends Controller
 // }
 
 
-public function edit(Employee $employee)
-{
-    // Just load the relationships (clean and light)
-    $employee->load('rosters');
+// public function edit(Employee $employee)
+// {
+//     // Just load the relationships (clean and light)
+//     $employee->load('rosters');
 
-    return view('employees.edit', compact('employee'));
-}
+//     return view('employees.edit', compact('employee'));
+// }
+
+
+
+    public function edit(Employee $employee)
+    {
+        // ✅ ONLY load page
+        return view('employees.edit', compact('employee'));
+    }
+
+    public function getRosters(Employee $employee, Request $request)
+    {
+        // ✅ Calendar AJAX endpoint
+        return response()->json(
+CalendarHelper::getEvents($request, [
+    'employee' => $employee
+])
+        );
+    }
+
 
 
     public function update(UpdateEmployeeRequest $request, Employee $employee)
@@ -242,10 +261,12 @@ public function edit(Employee $employee)
 //     return response()->json($events);
 // }
 
-public function getRosters(Employee $employee, Request $request)
-{
-    $events = CalendarHelper::getEvents($request, $employee);
-    return response()->json($events);
-}
+// public function getRosters(Employee $employee, Request $request)
+// {
+//     $events = CalendarHelper::getEvents($request, $employee);
+//     return response()->json($events);
+// }
+
+
 
 }

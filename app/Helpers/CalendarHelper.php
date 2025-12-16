@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-use App\Models\{Roster, Holiday, ServiceUser};
+use App\Models\{Employee, Roster, Holiday, ServiceUser};
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
@@ -11,7 +11,8 @@ use Carbon\Carbon;
 class CalendarHelper
 {
 
-public static function getEvents(Request $request, ServiceUser $serviceUser = null): Collection
+// public static function getEvents(Request $request, ServiceUser $serviceUser = null): Collection
+public static function getEvents(Request $request,  array $context = []): Collection
 {
     $start = $request->query('start');
     $end   = $request->query('end');
@@ -20,13 +21,23 @@ public static function getEvents(Request $request, ServiceUser $serviceUser = nu
     $yearStart = Carbon::now()->startOfYear()->toDateString();
     $yearEnd   = Carbon::now()->endOfYear()->toDateString();
 
-    // 🔹 Rosters (calendar range + service user scope)
-    $rosters = Roster::with(['employee', 'serviceUser'])
-        ->when($serviceUser, fn ($q) =>
-            $q->where('service_user_id', $serviceUser->id)
-        )
-        ->whereBetween('start', [$start, $end])
-        ->get();
+
+
+
+    $employee    = $context['employee'] ?? null;
+    $serviceUser = $context['service_user'] ?? null;
+
+    // 🔹 Base roster query
+    $query = Roster::with(['employee', 'serviceUser'])
+        ->whereBetween('start', [$start, $end]);
+
+    if ($employee) {
+        $query->where('employee_id', $employee->id);
+    } elseif ($serviceUser) {
+        $query->where('service_user_id', $serviceUser->id);
+    }
+
+    $rosters = $query->get();
 
     // 🔹 Holidays (FULL YEAR)
     $holidays = Holiday::whereBetween('date', [$yearStart, $yearEnd])->get();

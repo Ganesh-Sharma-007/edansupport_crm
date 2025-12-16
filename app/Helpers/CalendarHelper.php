@@ -19,7 +19,7 @@ class CalendarHelper
     {
         $start = $request->query('start') ?? $request->start;
         $end   = $request->query('end') ?? $request->end;
-dd($start, $end);
+// dd($start, $end);
         // ✅ Fetch rosters (optionally scoped to an employee)
         $rosters = Roster::with(['employee', 'serviceUser'])
             ->when($employee, fn($q) => $q->where('employee_id', $employee->id))

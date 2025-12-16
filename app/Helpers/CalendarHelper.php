@@ -2,35 +2,37 @@
 
 namespace App\Helpers;
 
-use App\Models\{Roster, Holiday, Employee};
+use App\Models\{Roster, Holiday, ServiceUser};
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
+
 
 class CalendarHelper
 {
-    /**
-     * Generate unified roster + holiday events
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Employee|null  $employee
-     * @return \Illuminate\Support\Collection
-     */
-    public static function getEvents(Request $request, Employee $employee = null): Collection
-    {
-        $start = $request->query('start') ?? $request->start;
-        $end   = $request->query('end') ?? $request->end;
-// dd($start, $end);
-        // ✅ Fetch rosters (optionally scoped to an employee)
-        $rosters = Roster::with(['employee', 'serviceUser'])
-            ->when($employee, fn($q) => $q->where('employee_id', $employee->id))
-            ->whereBetween('start', [$start, $end])
-            ->get();
 
-        // ✅ Fetch holidays
-        $holidays = Holiday::whereBetween('date', [$start, $end])->get();
+public static function getEvents(Request $request, ServiceUser $serviceUser = null): Collection
+{
+    $start = $request->query('start');
+    $end   = $request->query('end');
 
-        // ✅ Format roster events
-        $rosterEvents = $rosters->map(fn($r) => [
+    // 🔹 Always fetch holidays for current year
+    $yearStart = Carbon::now()->startOfYear()->toDateString();
+    $yearEnd   = Carbon::now()->endOfYear()->toDateString();
+
+    // 🔹 Rosters (calendar range + service user scope)
+    $rosters = Roster::with(['employee', 'serviceUser'])
+        ->when($serviceUser, fn ($q) =>
+            $q->where('service_user_id', $serviceUser->id)
+        )
+        ->whereBetween('start', [$start, $end])
+        ->get();
+
+    // 🔹 Holidays (FULL YEAR)
+    $holidays = Holiday::whereBetween('date', [$yearStart, $yearEnd])->get();
+
+
+        $rosterEvents = $rosters->map(fn ($r) => [
             'id'    => $r->id,
             'title' => ($r->employee?->first_name ? "{$r->employee->first_name} → " : '')
                         . ($r->serviceUser?->first_name ?? 'Shift'),
@@ -49,8 +51,10 @@ class CalendarHelper
             'extendedProps' => [
                 'type'    => 'roster',
                 'status'  => $r->status,
-                'tooltip' => "Employee: {$r->employee?->first_name}\nUser: {$r->serviceUser?->first_name}",
-                'badge'   => match ($r->status) {
+                'tooltip' =>
+                    "Employee: {$r->employee?->first_name}\n" .
+                    "User: {$r->serviceUser?->first_name}",
+                    'badge'   => match ($r->status) {
                     'cancelled'   => 'danger',
                     'complete'    => 'success',
                     'in-progress' => 'warning',
@@ -59,15 +63,14 @@ class CalendarHelper
             ],
         ]);
 
-        // ✅ Format holiday events
-        $holidayEvents = $holidays->map(fn($h) => [
+        $holidayEvents = $holidays->map(fn ($h) => [
             'id'    => 'holiday-' . $h->id,
             'title' => $h->name,
             'start' => $h->date->toDateString(),
-            'display' => 'background',
+            'end'   => $h->date->copy()->addDay()->toDateString(), // ✅ required
             'allDay' => true,
+            'display' => 'background',
             'classNames' => ['bg-holiday'],
-            'borderColor' => 'transparent',
             'extendedProps' => [
                 'type'    => 'holiday',
                 'tooltip' => "Public Holiday: {$h->name}",

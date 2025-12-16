@@ -51,6 +51,7 @@
                 if (!calendarEl) return;
 
                 const calendar = new FullCalendar.Calendar(calendarEl, {
+                    contentHeight: 550, // grid only
                     initialView: 'dayGridMonth',
                     themeSystem: 'bootstrap5',
                     headerToolbar: {
@@ -103,21 +104,21 @@
                     Swal.fire({
                         title: 'Roster Details',
                         html: `
-                <strong>Task:</strong> ${event.title}<br>
-                <strong>Status:</strong> <span class="badge bg-${event.extendedProps.badge}">
-                    ${event.extendedProps.status}
-                </span><br>
-                <strong>Start:</strong> ${event.startStr}<br>
-                <strong>End:</strong> ${event.endStr || 'N/A'}<br><br>
-                <div class="text-center mt-3">
-                    <button id="editRosterBtn" class="btn btn-sm btn-outline-primary">
-                        <i class="fa fa-edit me-1"></i> Edit
-                    </button>
-                    <button id="deleteRosterBtn" class="btn btn-sm btn-outline-danger">
-                        <i class="fa fa-trash me-1"></i> Delete
-                    </button>
-                </div>
-            `,
+                            <strong>Task:</strong> ${event.title}<br>
+                            <strong>Status:</strong> <span class="badge bg-${event.extendedProps.badge}">
+                                ${event.extendedProps.status}
+                            </span><br>
+                            <strong>Start:</strong> ${event.startStr}<br>
+                            <strong>End:</strong> ${event.endStr || 'N/A'}<br><br>
+                            <div class="text-center mt-3">
+                                <button id="editRosterBtn" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa fa-edit me-1"></i> Edit
+                                </button>
+                                <button id="deleteRosterBtn" class="btn btn-sm btn-outline-danger">
+                                    <i class="fa fa-trash me-1"></i> Delete
+                                </button>
+                            </div>
+                        `,
                         showCloseButton: true,
                         showConfirmButton: false,
                         didOpen: () => {

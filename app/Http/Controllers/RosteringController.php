@@ -65,7 +65,6 @@ class RosteringController extends Controller
         ]);
     }
 
-
     public function update(UpdateRosterRequest $request, Roster $roster)
     {
 
@@ -84,24 +83,6 @@ class RosteringController extends Controller
 
         return redirect()->route('rostering.index')->with('success', 'Shift updated.');
     }
-
-    // public function destroy(Roster $roster)
-    // {
-    //     $roster->update([
-    //         'status'       => 'cancelled',
-    //         'cancelled_by' => auth()->id(),
-    //     ]);
-
-    //     ActivityLog::create([
-    //         'user_id'   => auth()->id(),
-    //         'type'      => 'delete',
-    //         'entity'    => 'roster',
-    //         'entity_id' => $roster->id,
-    //         'message'   => 'Roster shift cancelled',
-    //     ]);
-
-    //     return redirect()->route('rostering.index')->with('success', 'Shift cancelled.');
-    // }
     
     public function destroy(Roster $roster)
     {
@@ -116,71 +97,6 @@ class RosteringController extends Controller
         $roster->delete();
         return response()->json(['message' => 'Roster deleted successfully.']);
     }
-
-
-    /* FullCalendar JSON feed */
-
-
-    // private function calendarEvents(Request $request)
-    // {
-    //     $start = $request->start;
-    //     $end   = $request->end;
-
-    //     // Fetch rosters with employee & service user
-    //     $rosters = Roster::with(['employee', 'serviceUser'])
-    //         ->whereBetween('start', [$start, $end])
-    //         ->get();
-
-    //     // Fetch holidays within range
-    //     $holidays = Holiday::whereBetween('date', [$start, $end])->get();
-        
-    //     $rosterEvents = $rosters->map(fn($r) => [
-    //         'id'    => $r->id,
-    //         'title' => "{$r->employee?->first_name} → {$r->serviceUser?->first_name}",
-    //         'start' => $r->start->toDateTimeString(),
-    //         'end'   => $r->end->toDateTimeString(),
-    //         'allDay' => false,
-    //         'display' => 'block', // or 'background' for full-cell highlight
-    //         'backgroundColor' => match ($r->status) {
-    //             'cancelled'   => '#dc3545',   // red
-    //             'complete'    => '#28a745',   // green
-    //             'in-progress' => '#ffc107',   // yellow
-    //             default       => '#0d6efd',   // blue
-    //         },
-    //         'borderColor' => 'transparent', // remove default border
-    //         'textColor' => '#fff', // make text readable
-    //         'extendedProps' => [
-    //             'type'    => 'roster',
-    //             'status'  => $r->status,
-    //             'tooltip' => "Employee: {$r->employee?->first_name}\nUser: {$r->serviceUser?->first_name}",
-    //             'badge'   => match ($r->status) {
-    //                 'cancelled'   => 'danger',
-    //                 'complete'    => 'success',
-    //                 'in-progress' => 'warning',
-    //                 default       => 'primary',
-    //             },
-    //         ],
-    //     ]);
-
-    //     // Format holiday events
-    //     $holidayEvents = $holidays->map(fn($h) => [
-    //         'id'    => 'holiday-' . $h->id,
-    //         'classNames' => ['bg-holiday'], // ✅ Add custom class
-    //         'title' => "{$h->name}",
-    //         'start' => $h->date->toDateString(),
-    //         'display' => 'background', // 👈 Fills entire cell
-    //         'allDay' => true,
-    //         'extendedProps' => [
-    //             'type'    => 'holiday',
-    //             'tooltip' => "Public Holiday: {$h->name}",
-    //         ],
-    //     ]);
-
-
-    //     // Merge and return both sets
-    //     return response()->json($rosterEvents->merge($holidayEvents));
-    // }
-
     
     private function calendarEvents(Request $request)
     {

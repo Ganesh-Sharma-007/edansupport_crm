@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CalendarHelper;
 use App\Models\ServiceUser;
 use App\Http\Requests\{StoreServiceUserRequest, UpdateServiceUserRequest};
 use App\Models\ActivityLog;
@@ -44,32 +45,149 @@ class ServiceUserController extends Controller
     // }
 
 
+// public function edit(Request $request, ServiceUser $serviceUser)
+// {
+
+//     // Rosters
+//     $service_user_roster = $serviceUser->roster()->get();
+
+//     // Date range (from query or fallback to service user dates)
+//     $start = $request->query('start', $serviceUser->start);
+//     $end   = $request->query('end', $serviceUser->end);
+//         // dd($start, $end);
+
+//     // Holidays in range
+//     $service_user_holiday = Holiday::whereBetween('date', [$start, $end])->get();
+
+//     // Invoice
+//     $invoice = $serviceUser->invoice()->latest()->first();
+
+//     return view(
+//         'service-users.edit',
+//         compact(
+//             'serviceUser',
+//             'invoice',
+//             'service_user_roster',
+//             'service_user_holiday'
+//         )
+//     );
+// }
+
+// public function edit(Request $request, ServiceUser $serviceUser)
+// {
+//     // Rosters
+//     $service_user_roster = $serviceUser->roster()->get();
+
+//     // Date range
+//     $start = $request->query('start', $serviceUser->start);
+//     $end   = $request->query('end', $serviceUser->end);
+
+//     // Holidays
+//     $service_user_holiday = Holiday::whereBetween('date', [$start, $end])->get();
+
+//     // Invoice
+//     $invoice = $serviceUser->invoice()->latest()->first();
+
+//     /* =========================
+//        ROSTER EVENTS
+//     ========================== */
+//     $rosterEvents = $service_user_roster->map(function ($r) {
+//         return [
+//             'id'    => $r->id,
+//             'title' => 'Shift (' . $r->shift_hours . ' hrs)',
+//             'start' => $r->start->toDateTimeString(),
+//             'end'   => $r->end->toDateTimeString(),
+//             'allDay' => false,
+//             'display' => 'block',
+//             'backgroundColor' => match ($r->status) {
+//                 'cancelled'   => '#dc3545',
+//                 'complete'    => '#28a745',
+//                 'in-progress' => '#ffc107',
+//                 default       => '#0d6efd',
+//             },
+//             'borderColor' => 'transparent',
+//             'textColor' => '#fff',
+//             'extendedProps' => [
+//                 'type'   => 'roster',
+//                 'status' => $r->status,
+//                 'tooltip' =>
+//                     "Employee: {$r->employee?->first_name}\n" .
+//                     "User: {$r->serviceUser?->first_name}",
+//             ],
+//         ];
+//     });
+
+//     /* =========================
+//        HOLIDAY EVENTS
+//     ========================== */
+//     $holidayEvents = $service_user_holiday->map(function ($h) {
+//         return [
+//             'id'    => 'holiday-' . $h->id,
+//             'title' => $h->name,
+//             'start' => $h->date->toDateString(),
+//             'allDay' => true,
+//             'display' => 'background',
+//             'classNames' => ['bg-holiday'],
+//             'extendedProps' => [
+//                 'type'    => 'holiday',
+//                 'tooltip' => "Public Holiday: {$h->name}",
+//             ],
+//         ];
+//     });
+
+//     /* =========================
+//        MERGE EVENTS
+//     ========================== */
+//     $allEvents = $rosterEvents->merge($holidayEvents);
+
+//     return view(
+//         'service-users.edit',
+//         [
+//             'serviceUser'      => $serviceUser,
+//             'invoice'          => $invoice,
+//             'suId'             => $serviceUser->id,
+//             'suRosterEvents'   => $allEvents,
+//         ]
+//     );
+// }
+
+// public function edit(Request $request, ServiceUser $serviceUser)
+// {
+//     // ✅ AJAX feed for FullCalendar
+//     if ($request->wantsJson() || $request->has('ajax')) {
+//         return response()->json(
+//             CalendarHelper::getEvents($request)
+//         );
+//     }
+
+//     // ✅ Normal page render
+//     $invoice = $serviceUser->invoice()->latest()->first();
+
+//     return view('service-users.edit', [
+//         'serviceUser' => $serviceUser,
+//         'invoice'     => $invoice,
+//     ]);
+// }
+
+
 public function edit(Request $request, ServiceUser $serviceUser)
 {
-    // Rosters
-    $service_user_roster = $serviceUser->roster()->get();
+    // ✅ AJAX feed (scoped)
+    if ($request->wantsJson() || $request->has('ajax')) {
+        return response()->json(
+            CalendarHelper::getEvents($request, $serviceUser)
+        );
+    }
 
-    // Date range (from query or fallback to service user dates)
-    $start = $request->query('start', $serviceUser->start);
-    $end   = $request->query('end', $serviceUser->end);
-        // dd($start, $end);
-
-    // Holidays in range
-    $service_user_holiday = Holiday::whereBetween('date', [$start, $end])->get();
-
-    // Invoice
     $invoice = $serviceUser->invoice()->latest()->first();
 
-    return view(
-        'service-users.edit',
-        compact(
-            'serviceUser',
-            'invoice',
-            'service_user_roster',
-            'service_user_holiday'
-        )
-    );
+    return view('service-users.edit', [
+        'serviceUser' => $serviceUser,
+        'invoice'     => $invoice,
+    ]);
 }
+
+
 
     // public function update(UpdateServiceUserRequest $request, ServiceUser $serviceUser)
     // // public function update(Request $request, ServiceUser $serviceUser)

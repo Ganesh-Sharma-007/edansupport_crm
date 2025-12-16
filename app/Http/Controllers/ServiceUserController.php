@@ -175,7 +175,11 @@ public function edit(Request $request, ServiceUser $serviceUser)
     // ✅ AJAX feed (scoped)
     if ($request->wantsJson() || $request->has('ajax')) {
         return response()->json(
-            CalendarHelper::getEvents($request, $serviceUser)
+            // CalendarHelper::getEvents($request, $serviceUser)
+            CalendarHelper::getEvents($request, [
+    'service_user' => $serviceUser
+])
+
         );
     }
 

@@ -19,6 +19,7 @@ class StoreServiceUserRequest extends FormRequest
             'first_name'             => 'required|string|max:100',
             'middle_initial'         => 'nullable|string|max:10',
             'last_name'              => 'required|string|max:100',
+            'email'                  => 'required|string|email|max:255|unique:service_users,email',
             'preferred_name'         => 'nullable|string|max:100',
             'city'                   => 'nullable|string|max:100',
             'country'                => 'nullable|string|max:100',
